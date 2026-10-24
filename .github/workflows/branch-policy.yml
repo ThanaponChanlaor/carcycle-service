@@ -1,0 +1,36 @@
+name: Branch policy
+
+# Git flow: feature/* -> dev -> main.
+#   PRs into dev  must come from feature/*
+#   PRs into main must come from dev
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          case "$BASE_REF" in
+            main)
+              if [ "$HEAD_REF" != "dev" ]; then
+                echo "::error::PRs into main must come from dev (got '$HEAD_REF')."
+                exit 1
+              fi ;;
+            dev)
+              case "$HEAD_REF" in
+                feature/*) ;;
+                *)
+                  echo "::error::PRs into dev must come from a feature/* branch (got '$HEAD_REF')."
+                  exit 1 ;;
+              esac ;;
+            *)
+              echo "::error::Unexpected target branch '$BASE_REF'."
+              exit 1 ;;
+          esac
+          echo "OK: $HEAD_REF -> $BASE_REF"

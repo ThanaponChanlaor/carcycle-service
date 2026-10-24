@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: carcycle-service
+    runtime: go
+    plan: free
+    buildCommand: go build -o app .
+    startCommand: ./app
+    healthCheckPath: /
+    # Deploys are triggered by GitHub Actions (deploy hook) after CI passes on main.
+    autoDeploy: false
+    envVars:
+      # Demo/seed data only — production data lives in Firestore.
+      - key: DB_PATH
+        value: carcycle.db
+      - key: ALLOWED_ORIGINS
+        sync: false
